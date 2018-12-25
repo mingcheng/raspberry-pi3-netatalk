@@ -9,6 +9,6 @@
     <service>
         <type>_device-info._tcp</type>
         <port>0</port>
-        <txt-record>model=Xserve</txt-record>
+	<txt-record>model=TimeCapsule6,106</txt-record>
     </service>
 </service-group>

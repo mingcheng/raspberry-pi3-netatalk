@@ -1,0 +1,18 @@
+version: "2"
+services:
+  netatalk:
+    container_name: netatalk
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "548:548"
+      - "636:636"
+    volumes:
+      - ../afp.conf:/etc/afp.conf:ro
+      - /media:/media:rw
+    environment:
+      - AFP_PASSWORD=raspberry
+      - AFP_UID=1000
+      - AFP_GID=1000
+    restart: always

@@ -7,4 +7,4 @@ if [ ! -e /var/run/dbus/system_bus_socket ]; then
     dbus-daemon --system
 fi
 
-netatalk -d
+netatalk -F /etc/afp.conf -d

@@ -1,5 +1,7 @@
-FROM alpine:latest
+#FROM hypriot/rpi-alpine-scratch
+FROM resin/raspberry-pi-alpine:3.5
 MAINTAINER Óscar de Arriba <odarriba@gmail.com>
+MAINTAINER MingChen <mingcheng@outlook.com>
 
 ##################
 ##   BUILDING   ##
@@ -8,12 +10,15 @@ MAINTAINER Óscar de Arriba <odarriba@gmail.com>
 # Versions to use
 ENV netatalk_version 3.1.11
 
+# https://mirrors.ustc.edu.cn/help/alpine.html
+RUN echo "https://mirrors.ustc.edu.cn/alpine/v3.5/main" > /etc/apk/repositories
+
 WORKDIR /
 
 # Prerequisites
 RUN apk update && \
     apk upgrade && \
-    apk add --no-cache \
+    apk add \
       bash \
       curl \
       libldap \
@@ -30,7 +35,7 @@ RUN apk update && \
       acl \
       openssl \
       supervisor && \
-    apk add --no-cache --virtual .build-deps \
+    apk add --virtual .build-deps \
       build-base \
       autoconf \
       automake \
@@ -45,43 +50,43 @@ RUN apk update && \
     ln -s -f /bin/true /usr/bin/chfn && \
     cd /tmp && \
     curl -o netatalk-${netatalk_version}.tar.gz -L https://downloads.sourceforge.net/project/netatalk/netatalk/${netatalk_version}/netatalk-${netatalk_version}.tar.gz && \
-    tar xvf netatalk-${netatalk_version}.tar.gz && \
+    tar xvzf netatalk-${netatalk_version}.tar.gz && \
     cd netatalk-${netatalk_version} && \
     CFLAGS="-Wno-unused-result -O2" ./configure \
       --prefix=/usr \
       --localstatedir=/var/state \
       --sysconfdir=/etc \
       --with-dbus-sysconf-dir=/etc/dbus-1/system.d/ \
-      --with-init-style=debian-sysv \
       --sbindir=/usr/bin \
       --enable-quota \
       --with-tdb \
       --enable-silent-rules \
       --with-cracklib \
       --with-cnid-cdb-backend \
+		  --with-init-style=debian-sysv \
       --enable-pgp-uam \
       --with-acls && \
     make && \
     make install && \
     cd /tmp && \
     rm -rf netatalk-${netatalk_version} netatalk-${netatalk_version}.tar.gz && \
-    apk del .build-deps
+    apk del .build-deps && \
+    rm -rf /var/cache/apk/*
 
-RUN mkdir -p /timemachine && \
-    mkdir -p /var/log/supervisor && \
-    mkdir -p /conf.d/netatalk
+RUN mkdir -p /netatalk/timemachine /netatalk/data /netatalk/public && \
+    mkdir -p /var/log/supervisor
 
 # Create the log file
 RUN touch /var/log/afpd.log
 
 ADD entrypoint.sh /entrypoint.sh
 ADD start_netatalk.sh /start_netatalk.sh
-ADD bin/add-account /usr/bin/add-account
+# ADD add-account /usr/bin/add-account
 ADD supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 ADD afp.conf /etc/afp.conf
 
 EXPOSE 548 636
 
-VOLUME ["/timemachine"]
+VOLUME ["/netatalk"]
 
 CMD ["/entrypoint.sh"]
