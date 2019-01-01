@@ -87,6 +87,9 @@ ADD afp.conf /etc/afp.conf
 
 EXPOSE 548 636
 
+HEALTHCHECK --interval=1m --timeout=10s \
+	CMD nc -z localhost 548 || exit 1
+
 VOLUME ["/netatalk"]
 
 CMD ["/entrypoint.sh"]
